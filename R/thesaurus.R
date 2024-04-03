@@ -47,3 +47,25 @@ get_taxref_versions <- function(all = FALSE, id = NULL, current = TRUE) {
   }
 }
 
+#' Get TAXREF taxonomic ranks information
+#'
+#' @return a data frame
+#' @export
+#'
+#' @importFrom dplyr select
+#' @importFrom httr GET http_status content
+#' @importFrom jsonlite fromJSON
+get_taxonomicRanks <- function() {
+  response <- file.path(base_url, "taxonomicRanks") %>%
+    httr::GET()
+
+  if (httr::http_status(response)$category != "Success")
+    stop("La requête a échoué avec le message : ", httr::http_status(response)$message)
+
+  content <- response %>%
+    httr::content("text") %>%
+    jsonlite::fromJSON()
+
+  content$`_embedded`$taxonomicRanks %>%
+    dplyr::select(-`_links`)
+}
