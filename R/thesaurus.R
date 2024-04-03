@@ -11,7 +11,7 @@
 #'
 #' @export
 #'
-#' @importFrom dplyr case_when select
+#' @importFrom dplyr case_when select `%>%`
 #' @importFrom httr GET http_status content
 #' @importFrom jsonlite fromJSON
 get_taxref_versions <- function(current = TRUE) {
@@ -25,7 +25,7 @@ get_taxref_versions <- function(current = TRUE) {
     httr::GET()
 
   if (httr::http_status(response)$category != "Success")
-    stop("La requête a échoué avec le message : ", httr::http_status(response)$message)
+    stop("Request failed with the message : ", httr::http_status(response)$message)
 
   content <- response %>%
     httr::content("text") %>%
@@ -54,7 +54,7 @@ get_taxonomicRanks <- function() {
     httr::GET()
 
   if (httr::http_status(response)$category != "Success")
-    stop("La requête a échoué avec le message : ", httr::http_status(response)$message)
+    stop("Request failed with the message : ", httr::http_status(response)$message)
 
   content <- response %>%
     httr::content("text") %>%
@@ -77,7 +77,7 @@ get_vernacularGroups <- function() {
     httr::GET()
 
   if (httr::http_status(response)$category != "Success")
-    stop("La requête a échoué avec le message : ", httr::http_status(response)$message)
+    stop("Request failed with the message : ", httr::http_status(response)$message)
 
   content <- response %>%
     httr::content("text") %>%
@@ -98,7 +98,7 @@ get_externalDB <- function() {
     httr::GET()
 
   if (httr::http_status(response)$category != "Success")
-    stop("La requête a échoué avec le message : ", httr::http_status(response)$message)
+    stop("Request failed with the message : ", httr::http_status(response)$message)
 
   content <- response %>%
     httr::content("text") %>%
@@ -119,7 +119,7 @@ get_biogeographicStatus <- function() {
     httr::GET()
 
   if (httr::http_status(response)$category != "Success")
-    stop("La requête a échoué avec le message : ", httr::http_status(response)$message)
+    stop("Request failed with the message : ", httr::http_status(response)$message)
 
   content <- response %>%
     httr::content("text") %>%
