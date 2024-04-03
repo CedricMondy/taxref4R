@@ -87,3 +87,45 @@ get_vernacularGroups <- function() {
     dplyr::arrange(level, name)
 
 }
+
+#' Get information about external reference systems connected to TAXREF
+#'
+#' @return a data frame
+#' @export
+#'
+get_externalDB <- function() {
+  response <- file.path(base_url, "externalDb") %>%
+    httr::GET()
+
+  if (httr::http_status(response)$category != "Success")
+    stop("La requête a échoué avec le message : ", httr::http_status(response)$message)
+
+  content <- response %>%
+    httr::content("text") %>%
+    jsonlite::fromJSON()
+
+  content$`_embedded`$externalDb %>%
+    dplyr::select(-`_links`)
+
+}
+
+#' Get biogeographic status reference system used in TAXREF
+#'
+#' @return a data frame
+#' @export
+#'
+get_biogeographicStatus <- function() {
+  response <- file.path(base_url, "biogeographicStatus") %>%
+    httr::GET()
+
+  if (httr::http_status(response)$category != "Success")
+    stop("La requête a échoué avec le message : ", httr::http_status(response)$message)
+
+  content <- response %>%
+    httr::content("text") %>%
+    jsonlite::fromJSON()
+
+  content$`_embedded`$biogeographicStatus %>%
+    dplyr::select(-`_links`)
+
+}
