@@ -69,3 +69,27 @@ get_taxonomicRanks <- function() {
   content$`_embedded`$taxonomicRanks %>%
     dplyr::select(-`_links`)
 }
+
+#' Get INPN group names
+#'
+#' @return a data frame with the level and name of the INPN group
+#' @export
+#'
+#' @importFrom dplyr arrange
+#' @importFrom httr GET http_status content
+#' @importFrom jsonlite fromJSON
+get_vernacularGroups <- function() {
+  response <- file.path(base_url, "vernacularGroups") %>%
+    httr::GET()
+
+  if (httr::http_status(response)$category != "Success")
+    stop("La requête a échoué avec le message : ", httr::http_status(response)$message)
+
+  content <- response %>%
+    httr::content("text") %>%
+    jsonlite::fromJSON()
+
+  content$`_embedded`$vernacularGroupList %>%
+    dplyr::arrange(level, name)
+
+}
