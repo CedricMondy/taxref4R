@@ -14,6 +14,9 @@
 #' @importFrom dplyr case_when select `%>%`
 #' @importFrom httr GET http_status content
 #' @importFrom jsonlite fromJSON
+#' @importFrom dplyr case_when select
+#' @importFrom httr GET http_status content
+#' @importFrom jsonlite fromJSON
 get_taxref_versions <- function(current = TRUE) {
 
   url_path <- dplyr::case_when(
@@ -49,6 +52,9 @@ get_taxref_versions <- function(current = TRUE) {
 #' @importFrom dplyr select
 #' @importFrom httr GET http_status content
 #' @importFrom jsonlite fromJSON
+#' @importFrom dplyr select
+#' @importFrom httr GET http_status content
+#' @importFrom jsonlite fromJSON
 get_taxonomicRanks <- function() {
   response <- file.path(base_url, "taxonomicRanks") %>%
     httr::GET()
@@ -69,6 +75,9 @@ get_taxonomicRanks <- function() {
 #' @return a data frame with the level and name of the INPN group
 #' @export
 #'
+#' @importFrom dplyr arrange
+#' @importFrom httr GET http_status content
+#' @importFrom jsonlite fromJSON
 #' @importFrom dplyr arrange
 #' @importFrom httr GET http_status content
 #' @importFrom jsonlite fromJSON
@@ -93,6 +102,9 @@ get_vernacularGroups <- function() {
 #' @return a data frame
 #' @export
 #'
+#' @importFrom dplyr select
+#' @importFrom httr GET http_status content
+#' @importFrom jsonlite fromJSON
 get_externalDB <- function() {
   response <- file.path(base_url, "externalDb") %>%
     httr::GET()
@@ -114,6 +126,9 @@ get_externalDB <- function() {
 #' @return a data frame
 #' @export
 #'
+#' @importFrom dplyr select
+#' @importFrom httr GET http_status content
+#' @importFrom jsonlite fromJSON
 get_biogeographicStatus <- function() {
   response <- file.path(base_url, "biogeographicStatus") %>%
     httr::GET()
