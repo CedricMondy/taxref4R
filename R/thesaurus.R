@@ -1,8 +1,6 @@
 
 #' Get TAXREF versions information
 #'
-#' @param all logical. Should all the versions be returned
-#' @param id numeric identifier of the searched version
 #' @param current logical. Should only the current version be returned
 #'
 #' @return a data frame with information about:
@@ -16,15 +14,11 @@
 #' @importFrom dplyr case_when select
 #' @importFrom httr GET http_status content
 #' @importFrom jsonlite fromJSON
-get_taxref_versions <- function(all = FALSE, id = NULL, current = TRUE) {
-
-  if (!current && !all && is.null(id))
-    stop("id must be provided if current and all are both FALSE")
+get_taxref_versions <- function(current = TRUE) {
 
   url_path <- dplyr::case_when(
-    all ~ "taxrefVersions",
-    !is.null(id) ~ paste0("taxrefVersions/", id),
-    current ~ "taxrefVersions/current"
+    current ~ "taxrefVersions/current",
+    TRUE ~ "taxrefVersions"
   )
 
   response <- file.path(base_url, path = url_path) %>%
@@ -39,7 +33,7 @@ get_taxref_versions <- function(all = FALSE, id = NULL, current = TRUE) {
 
   if ("_embedded" %in% names(content)) {
     content$`_embedded`$taxrefVersions %>%
-      dplyr::select(-href)
+      dplyr::select(-`_links`)
   } else {
     content %>%
       as.data.frame() %>%
