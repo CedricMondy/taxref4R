@@ -73,7 +73,7 @@ get_taxa <- function(cd_nom) {
 
 #' Get taxa classification
 #'
-#' @param cd_nom TAXREF taxon identifier
+#' @inheritParams get_taxa
 #'
 #' @return a data frame with one row per taxon from the highest parent (first
 #'   row) to the taxon corresponding to searched cd_nom (last row)
@@ -101,13 +101,13 @@ get_taxa_classification <- function(cd_nom) {
 
 #' Get taxa synonyms
 #'
-#' @param cd_nom TAXREF taxon synonyms
+#' @inheritParams get_taxa
 #'
 #' @return a data frame with one row per synonym of the taxon corresponding to
 #'   searched cd_nom
 #' @export
 #'
-#' @importFrom dplyr select everything
+#' @importFrom dplyr select bind_rows everything
 #' @importFrom httr GET http_status content
 #' @importFrom jsonlite fromJSON
 get_taxa_synonyms <- function(cd_nom) {
@@ -133,4 +133,35 @@ get_taxa_synonyms <- function(cd_nom) {
   }
 }
 
+#' Get taxa children
+#'
+#' @inheritParams get_taxa
+#'
+#' @return a data frame
+#' @export
+#'
+#' @importFrom dplyr select everything
+#' @importFrom httr GET http_status content
+#' @importFrom jsonlite fromJSON
+get_taxa_children <- function(cd_nom) {
+  cd_ref <- get_taxa(cd_nom)$referenceId
 
+  response <- file.path(base_url, "taxa", cd_ref, "children") %>%
+    httr::GET()
+
+  if (httr::http_status(response)$category != "Success")
+    stop("Request failed with the message : ", httr::http_status(response)$message)
+
+  content <- response %>%
+    httr::content("text") %>%
+    jsonlite::fromJSON()
+
+  if (is.null(content$`_embedded`$taxa)) {
+    cat("No children found")
+  } else {
+    content$`_embedded`$taxa %>%
+      dplyr::select(-`_links`) %>%
+      dplyr::select(referenceId, referenceName, scientificName, id, frenchVernacularName, dplyr::everything())
+  }
+
+}
