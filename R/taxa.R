@@ -165,3 +165,37 @@ get_taxa_children <- function(cd_nom) {
   }
 
 }
+
+
+#' Get taxa status
+#'
+#' @inheritParams get_taxa
+#'
+#' @return a data frame
+#' @export
+#'
+#' @importFrom dplyr select starts_with
+#' @importFrom httr GET http_status content
+#' @importFrom jsonlite fromJSON
+get_taxa_status <- function(cd_nom) {
+  cd_ref <- get_taxa(cd_nom)$referenceId
+
+  response <- file.path(base_url, "taxa", cd_ref, "status/lines") %>%
+    httr::GET()
+
+  if (httr::http_status(response)$category != "Success")
+    stop("Request failed with the message : ", httr::http_status(response)$message)
+
+  content <- response %>%
+    httr::content("text") %>%
+    jsonlite::fromJSON()
+
+  if (is.null(content$`_embedded`$status)) {
+    cat("No status found")
+  } else {
+    content$`_embedded`$status %>%
+      dplyr::mutate(referenceId = cd_ref) %>%
+      dplyr::select(referenceId, dplyr::starts_with("status"), dplyr::starts_with("location"), dplyr::starts_with("source"))
+  }
+
+}
