@@ -2,6 +2,7 @@
 
 export(get_biogeographicStatus)
 export(get_externalDB)
+export(get_status_types)
 export(get_taxa)
 export(get_taxa_children)
 export(get_taxa_classification)
