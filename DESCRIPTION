@@ -5,15 +5,17 @@ Version: 0.1.0
 Author: Cédric Mondy
 Maintainer: Cédric Mondy <cedric.mondy@gmail.com>
 Description: This packages brings functions to call different endpoints of
-    the French TAXREF API. This API delivers information about species taxonomic
-    details as well as information about their protection and conservation status.
+    the French TAXREF API. This API delivers information about species
+    taxonomic details as well as information about their protection and
+    conservation status.
 License: MIT + file LICENSE
 Depends: 
     R (>= 2.10)
 Imports: 
     dplyr,
     httr,
-    jsonlite
+    jsonlite,
+    tibble
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
