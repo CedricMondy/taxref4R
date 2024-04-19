@@ -1,6 +1,6 @@
 #' Search taxa in TAXREF
 #'
-#' @param search_strings a named list used to build the query. Names correspond
+#' @param ... named arguments used to build the query. Names correspond
 #'   to parameters described in the API documentation
 #'   (https://taxref.mnhn.fr/taxref-web/api/doc, section /taxa/search). The
 #'   values correspond to the searched terms. Here are some examples of
@@ -16,13 +16,13 @@
 #' @importFrom dplyr select everything
 #' @importFrom httr parse_url build_url GET http_status content
 #' @importFrom jsonlite fromJSON
-search_taxa <- function(search_strings) {
+search_taxa <- function(...) {
 
 
   url <- file.path(base_url, "taxa/search") %>%
     httr::parse_url()
 
-  url$query <- c(search_strings, size=5000, page=1)
+  url$query <- c(list(...), size=5000, page=1)
 
   url <- httr::build_url(url)
 
