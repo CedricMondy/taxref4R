@@ -43,24 +43,41 @@ search_status <- function(...) {
   url <- file.path(base_url, "status/search/lines") %>%
     httr::parse_url()
 
-  url$query <- c(list(...), size=5000, page=1)
+  page_number <- 1
+  status <- "Success"
 
-  url <- httr::build_url(url)
+  results <- list()
 
-  response <- url %>%
-    httr::GET()
+  while(status == "Success") {
+    url$query <- c(list(...), size = 5000, page = page_number)
 
-  if (httr::http_status(response)$category != "Success")
+    response <- url %>%
+      httr::GET()
+
+    status <- httr::http_status(response)$category
+
+    if (status == "Success") {
+      results[[page_number]] <-  response %>%
+        httr::content("text") %>%
+        jsonlite::fromJSON() %>%
+        (function(x) {
+          x$`_embedded`$status%>%
+            dplyr::select(-`_links`) %>%
+            (function(x) {
+              dplyr::bind_cols(x$taxon, dplyr::select(x, -taxon))
+            }) %>%
+            tibble::as_tibble()
+        })
+
+      page_number <- page_number + 1
+    }
+
+  }
+
+  if (page_number == 1 & status != "Success")
     stop("Request failed with the message : ", httr::http_status(response)$message)
 
-  content <- response %>%
-    httr::content("text") %>%
-    jsonlite::fromJSON()
+  results %>%
+    purrr::list_rbind()
 
-  content$`_embedded`$status %>%
-    dplyr::select(-`_links`) %>%
-    (function(x) {
-      dplyr::bind_cols(x$taxon, dplyr::select(x, -taxon))
-    }) %>%
-    tibble::as_tibble()
 }

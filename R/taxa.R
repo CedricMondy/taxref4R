@@ -17,28 +17,48 @@
 #' @importFrom httr parse_url build_url GET http_status content
 #' @importFrom jsonlite fromJSON
 search_taxa <- function(...) {
-
-
   url <- file.path(base_url, "taxa/search") %>%
     httr::parse_url()
 
-  url$query <- c(list(...), size=5000, page=1)
+  page_number <- 1
+  status <- "Success"
 
-  url <- httr::build_url(url)
+  results <- list()
 
-  response <- url %>%
-    httr::GET()
+  while(status == "Success") {
+    url$query <- c(list(...), size=5000, page=page_number)
 
-  if (httr::http_status(response)$category != "Success")
+    response <- url %>%
+      httr::GET()
+
+    status <- httr::http_status(response)$category
+
+    if (status == "Success") {
+      content <- response %>%
+        httr::content("text") %>%
+        jsonlite::fromJSON()
+
+      if (content$page$size > 0) {
+        results[[page_number]] <- content %>%
+          (function(x) {
+            x$`_embedded`$taxa %>%
+              dplyr::select(-`_links`) %>%
+              dplyr::select(referenceId, referenceName, scientificName, id, frenchVernacularName, dplyr::everything())
+          })
+
+        page_number <- page_number + 1
+      } else {
+        status <- "No data"
+      }
+
+    }
+  }
+
+  if (page_number == 1 & status != "Success")
     stop("Request failed with the message : ", httr::http_status(response)$message)
 
-  content <- response %>%
-    httr::content("text") %>%
-    jsonlite::fromJSON()
-
-  content$`_embedded`$taxa %>%
-    dplyr::select(-`_links`) %>%
-    dplyr::select(referenceId, referenceName, scientificName, id, frenchVernacularName, dplyr::everything())
+  results %>%
+    purrr::list_rbind()
 }
 
 
