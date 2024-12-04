@@ -14,8 +14,9 @@
 #'   search parameters
 #' @export
 #' @importFrom dplyr select everything
-#' @importFrom httr parse_url build_url GET http_status content
+#' @importFrom httr parse_url GET http_status content
 #' @importFrom jsonlite fromJSON
+#' @importFrom purrr list_rbind
 search_taxa <- function(...) {
   url <- file.path(base_url, "taxa/search") %>%
     httr::parse_url()
@@ -61,7 +62,72 @@ search_taxa <- function(...) {
     purrr::list_rbind()
 }
 
+#' Fuzzy search taxa in TAXREF
+#'
+#' @param ... string to search for in taxa names
+#'
+#' @return a data frame with the responses (including synonyms) matching the
+#'   search parameters
+#' @export
+#' @importFrom dplyr select everything
+#' @importFrom httr parse_url GET http_status content
+#' @importFrom jsonlite fromJSON
+#' @importFrom purrr list_rbind
+fuzzy_search_taxa <- function(string) {
+  url <- file.path(base_url, "taxa/fuzzyMatch") %>%
+    httr::parse_url()
 
+  page_number <- 1
+  status <- "Success"
+
+  results <- list()
+
+  while(status == "Success") {
+    url$query <- list(term = string, size=5000, page=page_number)
+
+    response <- url %>%
+      httr::GET()
+
+    status <- httr::http_status(response)$category
+
+    if (status == "Success") {
+      content <- response %>%
+        httr::content("text") %>%
+        jsonlite::fromJSON()
+
+      if (!"page" %in% names(content) &
+          "_embedded" %in% names(content)) {
+        results <- list(content %>%
+          (function(x) {
+            x$`_embedded`$taxa %>%
+              dplyr::select(-`_links`) %>%
+              dplyr::select(referenceId, referenceName, scientificName, id, frenchVernacularName, dplyr::everything())
+          }))
+        break
+      } else {
+        if (content$page$size > 0) {
+          results[[page_number]] <- content %>%
+            (function(x) {
+              x$`_embedded`$taxa %>%
+                dplyr::select(-`_links`) %>%
+                dplyr::select(referenceId, referenceName, scientificName, id, frenchVernacularName, dplyr::everything())
+            })
+
+          page_number <- page_number + 1
+        } else {
+          status <- "No data"
+        }
+      }
+    }
+  }
+
+  if (page_number == 1 & status != "Success")
+    stop("Request failed with the message : ", httr::http_status(response)$message)
+
+  results %>%
+    purrr::list_rbind()
+
+}
 #' Get taxa information
 #'
 #' @param cd_nom TAXREF taxon identifier
@@ -194,7 +260,7 @@ get_taxa_children <- function(cd_nom) {
 #' @return a data frame
 #' @export
 #'
-#' @importFrom dplyr select starts_with
+#' @importFrom dplyr mutate select starts_with
 #' @importFrom httr GET http_status content
 #' @importFrom jsonlite fromJSON
 get_taxa_status <- function(cd_nom) {
